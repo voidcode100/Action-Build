@@ -738,6 +738,16 @@ jobs:
         run: |
           kotlin "$GITHUB_WORKSPACE/kernel_workspace/Action-Build/scripts/PatchFakePatches.kts" apply "$GITHUB_WORKSPACE/kernel_workspace/kernel_platform/common"
 
+      - name: Fix KernelSU kernel_umount build break
+        run: |
+          set -euo pipefail
+          TARGET="kernel_workspace/kernel_platform/common/drivers/kernelsu/feature/kernel_umount.c"
+          if [ -f "$TARGET" ] \
+            && grep -q 'set_handler = kernel_umount_feature_set' "$TARGET" \
+            && ! grep -q 'kernel_umount_feature_set(u64 value)' "$TARGET"; then
+            sed -i 's/set_handler = kernel_umount_feature_set/set_handler = NULL/' "$TARGET"
+          fi
+
       - name: Apply Patches SukiSU Ultra
         env:
           FILE: ${{ github.event.inputs.FILE }}
